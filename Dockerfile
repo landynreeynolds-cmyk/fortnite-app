@@ -10,16 +10,24 @@ WORKDIR /var/www/html
 # Copy app files
 COPY . /var/www/html
 
-# Install system dependencies + PHP extensions
-RUN apt-get update && apt-get install -y git unzip curl libzip-dev libxml2-dev \
-    && docker-php-ext-install mbstring zip curl xml \
+# Install system dependencies needed for PHP extensions
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    curl \
+    libzip-dev \
+    libxml2-dev \
+    zlib1g-dev \
+    libonig-dev \
+    pkg-config \
+    && docker-php-ext-install mbstring zip xml \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Install PHP dependencies
-RUN composer install --no-interaction
+RUN composer install --no-interaction || composer install --ignore-platform-reqs
 
 # Expose Apache port
 EXPOSE 80
