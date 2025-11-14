@@ -1,19 +1,20 @@
-# Use PHP 8.2 CLI
+# Use PHP 8.2 CLI image
 FROM php:8.2-cli
 
 # Set working directory
 WORKDIR /app
 
-# Copy all files into the container
+# Copy all files
 COPY . /app
 
-# Install system dependencies required for composer
-RUN apt-get update && apt-get install -y git unzip curl
+# Install system dependencies and PHP extensions
+RUN apt-get update && apt-get install -y git unzip curl libzip-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install mbstring zip xml curl
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Install PHP dependencies (create vendor folder)
+# Install PHP dependencies
 RUN composer install --no-interaction || composer install --ignore-platform-reqs
 
 # Expose port 10000
