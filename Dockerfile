@@ -1,20 +1,26 @@
-# Use PHP 8 CLI image
-FROM php:8.2-cli
+# Use PHP 8.2 with Apache (includes required tools)
+FROM php:8.2-apache
+
+# Enable mod_rewrite (needed for routing)
+RUN a2enmod rewrite
 
 # Set working directory
-WORKDIR /app
+WORKDIR /var/www/html
 
-# Copy all files into the container
-COPY . /app
+# Copy all files
+COPY . /var/www/html
 
-# Install dependencies (composer)
-RUN apt-get update && apt-get install -y unzip git \
-    && php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
-    && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
-    && composer install
+# Install system dependencies for composer
+RUN apt-get update && apt-get install -y git unzip curl && rm -rf /var/lib/apt/lists/*
 
-# Expose port 10000
-EXPOSE 10000
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Start PHP server
-CMD ["php", "-S", "0.0.0.0:10000", "-t", "public"]
+# Install PHP dependencies
+RUN composer install --no-interaction
+
+# Expose default Apache port
+EXPOSE 80
+
+# Start Apache in foreground
+CMD ["apache2-foreground"]
