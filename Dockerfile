@@ -1,36 +1,14 @@
-# Use PHP 8.2 with Apache
-FROM php:8.2-apache
+# Use PHP 8.2 CLI image
+FROM php:8.2-cli
 
-# Enable Apache rewrite module
-RUN a2enmod rewrite
+WORKDIR /app
+COPY . /app
 
-# Set working directory
-WORKDIR /var/www/html
+# Install system dependencies for composer if needed
+RUN apt-get update && apt-get install -y git unzip curl
 
-# Copy app files
-COPY . /var/www/html
+# Expose port 10000
+EXPOSE 10000
 
-# Install system dependencies needed for PHP extensions
-RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    curl \
-    libzip-dev \
-    libxml2-dev \
-    zlib1g-dev \
-    libonig-dev \
-    pkg-config \
-    && docker-php-ext-install mbstring zip xml \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Install PHP dependencies
-RUN composer install --no-interaction || composer install --ignore-platform-reqs
-
-# Expose Apache port
-EXPOSE 80
-
-# Start Apache in foreground
-CMD ["apache2-foreground"]
+# Start PHP built-in server
+CMD ["php", "-S", "0.0.0.0:10000", "-t", "."]
